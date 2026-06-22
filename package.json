@@ -1,0 +1,31 @@
+{
+  "name": "hairlog-nordic",
+  "version": "1.2.0",
+  "private": false,
+  "type": "module",
+  "description": "HairLog Nordic v1.2 - offline-first PWA with Firebase cloud sync.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.9",
+    "firebase": "^11.10.0",
+    "idb": "^8.0.2",
+    "vite-plugin-pwa": "^0.21.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "keywords": [
+    "pwa",
+    "firebase",
+    "firestore",
+    "indexeddb",
+    "hair-loss",
+    "health-tracker"
+  ],
+  "license": "MIT"
+}
