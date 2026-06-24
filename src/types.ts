@@ -12,6 +12,6 @@ export type HairRecord = {
 };
 
 export type Trend = {
-  label: "上升" | "下降" | "穩定" | "—";
-  hint: string;
+  label: "unknown" | "stable" | "up" | "down" | "-";
+  hint: "needSixRecords" | "trendStable" | "trendUp" | "trendDown";
 };

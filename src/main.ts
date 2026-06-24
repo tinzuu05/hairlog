@@ -236,6 +236,7 @@ function applyLanguage(): void {
   langZhBtn.classList.toggle("active", currentLang === "zh");
   langEnBtn.classList.toggle("active", currentLang === "en");
 
+  updateLiveTotal();
   updateCloudStatus();
 }
 function updateCloudStatus(text?: string): void {
@@ -266,8 +267,8 @@ function renderStats(records: HairRecord[]): void {
     avg14.textContent = String(average(records, 14));
     avg30.textContent = String(average(records, 30));
     const trend = getTrend(records);
-    trendText.textContent = trend.label;
-    trendHint.textContent = trend.hint;
+    trendText.textContent = t(trend.label as keyof typeof translations.zh);
+    trendHint.textContent = t(trend.hint as keyof typeof translations.zh);
 }
 function renderRecords(records: HairRecord[]): void {
     emptyState.style.display = records.length ? "none" : "block";
