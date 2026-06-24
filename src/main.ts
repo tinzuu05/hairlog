@@ -1,12 +1,34 @@
 import Chart from "chart.js/auto";
 import type { User } from "firebase/auth";
-import { deleteRecord, getRecords, getStorageStatus, requestPersistentStorage, upsertMany, upsertRecord } from "./storage";
+import {
+    deleteRecord,
+    getRecords,
+    getStorageStatus,
+    requestPersistentStorage,
+    upsertMany,
+    upsertRecord,
+} from "./storage";
 import { exportCSV } from "./export";
-import { average, formatShortDate, getTrend, makeRecordId, toISODate } from "./stats";
+import {
+    average,
+    formatShortDate,
+    getTrend,
+    makeRecordId,
+    toISODate,
+} from "./stats";
 import type { HairRecord } from "./types";
-import { deleteCloudRecord, fetchCloudRecords, loginWithGoogle, logout, uploadRecordToCloud, uploadRecordsToCloud, watchAuth } from "./cloud";
+import {
+    deleteCloudRecord,
+    fetchCloudRecords,
+    loginWithGoogle,
+    logout,
+    uploadRecordToCloud,
+    uploadRecordsToCloud,
+    watchAuth,
+} from "./cloud";
 import { isFirebaseConfigured } from "./firebase";
 import "./styles.css";
+import { getInitialLang, setLang, translations, type Lang } from "./i18n";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div class="app-shell">
@@ -18,6 +40,14 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
         <div id="storageStatus" class="status-line">正在確認資料儲存狀態…</div>
         <div id="cloudStatus" class="status-line">雲端狀態：尚未登入</div>
         <div class="auth-actions">
+          <div class="language-switch" aria-label="Language switch">
+              <button id="langZhBtn" class="language-option active" type="button">
+                <span class="language-main">繁中</span>
+              </button>
+              <button id="langEnBtn" class="language-option" type="button">
+                <span class="language-main">EN</span>
+              </button>
+          </div>
           <button id="loginBtn" class="ghost-btn" type="button">Google 登入同步</button>
           <button id="syncBtn" class="ghost-btn" type="button">立即同步</button>
           <button id="logoutBtn" class="ghost-btn" type="button">登出</button>
@@ -95,57 +125,153 @@ const exportBtn = document.querySelector<HTMLButtonElement>("#exportBtn")!;
 const storageStatus = document.querySelector<HTMLElement>("#storageStatus")!;
 const cloudStatus = document.querySelector<HTMLElement>("#cloudStatus")!;
 const loginBtn = document.querySelector<HTMLButtonElement>("#loginBtn")!;
+const langZhBtn = document.querySelector<HTMLButtonElement>("#langZhBtn")!;
+const langEnBtn = document.querySelector<HTMLButtonElement>("#langEnBtn")!;
 const syncBtn = document.querySelector<HTMLButtonElement>("#syncBtn")!;
 const logoutBtn = document.querySelector<HTMLButtonElement>("#logoutBtn")!;
-const rangeButtons = document.querySelectorAll<HTMLButtonElement>("[data-range]");
+const rangeButtons =
+    document.querySelectorAll<HTMLButtonElement>("[data-range]");
 const chartCanvas = document.querySelector<HTMLCanvasElement>("#hairChart")!;
 
 let activeRange = 14;
 let chart: Chart | null = null;
 let currentUser: User | null = null;
 
+let currentLang: Lang = getInitialLang();
+
+function t(key: keyof typeof translations.zh): string {
+    return translations[currentLang][key];
+}
+
 function getNumber(input: HTMLInputElement): number {
-  const value = Number(input.value);
-  return Number.isFinite(value) && value >= 0 ? Math.round(value) : 0;
+    const value = Number(input.value);
+    return Number.isFinite(value) && value >= 0 ? Math.round(value) : 0;
 }
 function getCurrentTotal(): number {
-  return getNumber(daytimeInput) + getNumber(washingInput) + getNumber(dryingInput);
+    return (
+        getNumber(daytimeInput) +
+        getNumber(washingInput) +
+        getNumber(dryingInput)
+    );
 }
-function updateLiveTotal(): void { liveTotal.textContent = `${getCurrentTotal()} 根`; }
+function updateLiveTotal(): void {
+    liveTotal.textContent = `${getCurrentTotal()} 根`;
+}
 function escapeHTML(value: string): string {
-  return value.replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char] ?? char));
+    return value.replace(
+        /[&<>"']/g,
+        (char) =>
+            ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;",
+            })[char] ?? char,
+    );
 }
 async function updateStorageStatus(): Promise<void> {
-  await requestPersistentStorage();
-  const status = await getStorageStatus();
-  storageStatus.textContent = status.persisted
-    ? "資料儲存狀態：已啟用持久儲存，降低被瀏覽器自動清除的機率。"
-    : "";
+    await requestPersistentStorage();
+    const status = await getStorageStatus();
+    storageStatus.textContent = status.persisted
+        ? "資料儲存狀態：已啟用持久儲存，降低被瀏覽器自動清除的機率。"
+        : "";
+}
+function applyLanguage(): void {
+  document.documentElement.lang = currentLang === "zh" ? "zh-Hant" : "en";
+
+  document.querySelector(".eyebrow")!.textContent = t("appSubtitle");
+  document.querySelector("h1")!.textContent = t("title");
+  document.querySelector(".hero-text")!.textContent = t("heroText");
+
+  loginBtn.textContent = t("login");
+  syncBtn.textContent = t("syncNow");
+  logoutBtn.textContent = t("logout");
+
+  document.querySelector(".hero-badge small")!.textContent = t("todayTotal");
+
+  const headings = document.querySelectorAll("h2");
+  headings[0].textContent = t("todayRecord");
+  headings[1].textContent = t("chartTitle");
+  headings[2].textContent = t("records");
+
+  const sectionDescriptions = document.querySelectorAll(".section-head p");
+  sectionDescriptions[0].textContent = t("overwriteHint");
+  sectionDescriptions[1].textContent = t("chartDesc");
+  sectionDescriptions[2].textContent = t("recordsDesc");
+
+  const labels = document.querySelectorAll("label");
+  labels[0].childNodes[0].textContent = t("date");
+  labels[1].childNodes[0].textContent = t("daytime");
+  labels[2].childNodes[0].textContent = t("washing");
+  labels[3].childNodes[0].textContent = t("drying");
+  labels[4].childNodes[0].textContent = t("note");
+
+  daytimeInput.placeholder = t("daytimePlaceholder");
+  washingInput.placeholder = t("washingPlaceholder");
+  dryingInput.placeholder = t("dryingPlaceholder");
+  noteInput.placeholder = t("notePlaceholder");
+
+  document.querySelector(".live-total span")!.textContent = t("dailyTotal");
+  document.querySelector(".primary-btn")!.textContent = t("save");
+
+  const statTitles = document.querySelectorAll(".stat-card span");
+  statTitles[0].textContent = t("avg7");
+  statTitles[1].textContent = t("avg14");
+  statTitles[2].textContent = t("avg30");
+  statTitles[3].textContent = t("trend");
+
+  const statUnits = document.querySelectorAll(".stat-card small");
+  statUnits[0].textContent = t("perDay");
+  statUnits[1].textContent = t("perDay");
+  statUnits[2].textContent = t("perDay");
+
+  document.querySelector('[data-range="7"]')!.textContent = t("range7");
+  document.querySelector('[data-range="14"]')!.textContent = t("range14");
+  document.querySelector('[data-range="30"]')!.textContent = t("range30");
+
+  exportBtn.textContent = t("exportCsv");
+  emptyState.textContent = t("emptyState");
+
+  langZhBtn.classList.toggle("active", currentLang === "zh");
+  langEnBtn.classList.toggle("active", currentLang === "en");
+
+  updateCloudStatus();
 }
 function updateCloudStatus(text?: string): void {
-  if (!isFirebaseConfigured) {
-    cloudStatus.textContent = "";
-    loginBtn.disabled = true; syncBtn.disabled = true; logoutBtn.disabled = true;
-    return;
-  }
-  cloudStatus.textContent = text ?? (currentUser ? `雲端狀態：已登入 ${currentUser.email ?? ""}` : "雲端狀態：尚未登入");
-  loginBtn.disabled = Boolean(currentUser);
-  syncBtn.disabled = !currentUser;
-  logoutBtn.disabled = !currentUser;
+    if (!isFirebaseConfigured) {
+        cloudStatus.textContent = "";
+        loginBtn.disabled = true;
+        syncBtn.disabled = true;
+        logoutBtn.disabled = true;
+        return;
+    }
+    cloudStatus.textContent =
+        text ??
+        (currentUser
+            ? `雲端狀態：已登入 ${currentUser.email ?? ""}`
+            : "雲端狀態：尚未登入");
+    loginBtn.disabled = Boolean(currentUser);
+    syncBtn.disabled = !currentUser;
+    logoutBtn.disabled = !currentUser;
 }
 function renderStats(records: HairRecord[]): void {
-  const todayRecord = records.find((record) => record.date === toISODate());
-  todayTotal.textContent = String(todayRecord?.total ?? getCurrentTotal());
-  avg7.textContent = String(average(records, 7));
-  avg14.textContent = String(average(records, 14));
-  avg30.textContent = String(average(records, 30));
-  const trend = getTrend(records);
-  trendText.textContent = trend.label;
-  trendHint.textContent = trend.hint;
+    const todayRecord = records.find((record) => record.date === toISODate());
+    todayTotal.textContent = String(todayRecord?.total ?? getCurrentTotal());
+    avg7.textContent = String(average(records, 7));
+    avg14.textContent = String(average(records, 14));
+    avg30.textContent = String(average(records, 30));
+    const trend = getTrend(records);
+    trendText.textContent = trend.label;
+    trendHint.textContent = trend.hint;
 }
 function renderRecords(records: HairRecord[]): void {
-  emptyState.style.display = records.length ? "none" : "block";
-  recordsList.innerHTML = records.slice().reverse().map((record) => `
+    emptyState.style.display = records.length ? "none" : "block";
+    recordsList.innerHTML = records
+        .slice()
+        .reverse()
+        .map(
+            (record) => `
     <article class="record-item">
       <div class="record-date">${record.date}</div>
       <div class="record-breakdown">
@@ -158,84 +284,164 @@ function renderRecords(records: HairRecord[]): void {
         <button class="danger-btn" type="button" data-delete="${record.id}">刪除</button>
       </div>
     </article>
-  `).join("");
+  `,
+        )
+        .join("");
 
-  document.querySelectorAll<HTMLButtonElement>("[data-delete]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const id = button.dataset.delete!;
-      await deleteRecord(id);
-      if (currentUser) await deleteCloudRecord(currentUser, id);
-      await render();
-    });
-  });
+    document
+        .querySelectorAll<HTMLButtonElement>("[data-delete]")
+        .forEach((button) => {
+            button.addEventListener("click", async () => {
+                const id = button.dataset.delete!;
+                await deleteRecord(id);
+                if (currentUser) await deleteCloudRecord(currentUser, id);
+                await render();
+            });
+        });
 }
 function renderChart(records: HairRecord[]): void {
-  const data = records.slice(-activeRange);
-  chart?.destroy();
-  chart = new Chart(chartCanvas, {
-    type: "line",
-    data: {
-      labels: data.map((record) => formatShortDate(record.date)),
-      datasets: [
-        { label: "總數", data: data.map((r) => r.total), tension: 0.35, borderWidth: 3 },
-        { label: "白天", data: data.map((r) => r.daytime), tension: 0.35, borderWidth: 2 },
-        { label: "洗髮", data: data.map((r) => r.washing), tension: 0.35, borderWidth: 2 },
-        { label: "吹髮", data: data.map((r) => r.drying), tension: 0.35, borderWidth: 2 }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
-      plugins: { legend: { labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y} 根` } } },
-      scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } }
-    }
-  });
+    const data = records.slice(-activeRange);
+    chart?.destroy();
+    chart = new Chart(chartCanvas, {
+        type: "line",
+        data: {
+            labels: data.map((record) => formatShortDate(record.date)),
+            datasets: [
+                {
+                    label: "總數",
+                    data: data.map((r) => r.total),
+                    tension: 0.35,
+                    borderWidth: 3,
+                },
+                {
+                    label: "白天",
+                    data: data.map((r) => r.daytime),
+                    tension: 0.35,
+                    borderWidth: 2,
+                },
+                {
+                    label: "洗髮",
+                    data: data.map((r) => r.washing),
+                    tension: 0.35,
+                    borderWidth: 2,
+                },
+                {
+                    label: "吹髮",
+                    data: data.map((r) => r.drying),
+                    tension: 0.35,
+                    borderWidth: 2,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+                legend: { labels: { usePointStyle: true, boxWidth: 8 } },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) =>
+                            `${ctx.dataset.label}: ${ctx.parsed.y} 根`,
+                    },
+                },
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, ticks: { precision: 0 } },
+            },
+        },
+    });
 }
 async function render(): Promise<void> {
-  const records = await getRecords();
-  renderStats(records); renderRecords(records); renderChart(records);
+    const records = await getRecords();
+    renderStats(records);
+    renderRecords(records);
+    renderChart(records);
 }
 async function syncNow(): Promise<void> {
-  if (!currentUser) return;
-  updateCloudStatus("雲端狀態：同步中…");
-  const localRecords = await getRecords();
-  await uploadRecordsToCloud(currentUser, localRecords);
-  const cloudRecords = await fetchCloudRecords(currentUser);
-  const syncedRecords = cloudRecords.map((r) => ({ ...r, syncedAt: new Date().toISOString() }));
-  await upsertMany(syncedRecords);
-  updateCloudStatus(`雲端狀態：同步完成，共 ${syncedRecords.length} 筆`);
-  await render();
+    if (!currentUser) return;
+    updateCloudStatus("雲端狀態：同步中…");
+    const localRecords = await getRecords();
+    await uploadRecordsToCloud(currentUser, localRecords);
+    const cloudRecords = await fetchCloudRecords(currentUser);
+    const syncedRecords = cloudRecords.map((r) => ({
+        ...r,
+        syncedAt: new Date().toISOString(),
+    }));
+    await upsertMany(syncedRecords);
+    updateCloudStatus(`雲端狀態：同步完成，共 ${syncedRecords.length} 筆`);
+    await render();
 }
 
 form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const now = new Date().toISOString();
-  const daytime = getNumber(daytimeInput);
-  const washing = getNumber(washingInput);
-  const drying = getNumber(dryingInput);
-  const record: HairRecord = {
-    id: makeRecordId(), date: dateInput.value || toISODate(), daytime, washing, drying,
-    total: daytime + washing + drying, note: noteInput.value.trim(), createdAt: now, updatedAt: now
-  };
-  await upsertRecord(record);
-  if (currentUser) {
-    await uploadRecordToCloud(currentUser, record);
-    await upsertRecord({ ...record, syncedAt: new Date().toISOString() });
-  }
-  form.reset(); dateInput.value = toISODate(); updateLiveTotal(); await updateStorageStatus(); await render();
+    event.preventDefault();
+    const now = new Date().toISOString();
+    const daytime = getNumber(daytimeInput);
+    const washing = getNumber(washingInput);
+    const drying = getNumber(dryingInput);
+    const record: HairRecord = {
+        id: makeRecordId(),
+        date: dateInput.value || toISODate(),
+        daytime,
+        washing,
+        drying,
+        total: daytime + washing + drying,
+        note: noteInput.value.trim(),
+        createdAt: now,
+        updatedAt: now,
+    };
+    await upsertRecord(record);
+    if (currentUser) {
+        await uploadRecordToCloud(currentUser, record);
+        await upsertRecord({ ...record, syncedAt: new Date().toISOString() });
+    }
+    form.reset();
+    dateInput.value = toISODate();
+    updateLiveTotal();
+    await updateStorageStatus();
+    await render();
 });
-[daytimeInput, washingInput, dryingInput].forEach((input) => input.addEventListener("input", async () => { updateLiveTotal(); renderStats(await getRecords()); }));
-rangeButtons.forEach((button) => button.addEventListener("click", async () => {
-  rangeButtons.forEach((item) => item.classList.remove("active"));
-  button.classList.add("active"); activeRange = Number(button.dataset.range); renderChart(await getRecords());
-}));
+[daytimeInput, washingInput, dryingInput].forEach((input) =>
+    input.addEventListener("input", async () => {
+        updateLiveTotal();
+        renderStats(await getRecords());
+    }),
+);
+rangeButtons.forEach((button) =>
+    button.addEventListener("click", async () => {
+        rangeButtons.forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        activeRange = Number(button.dataset.range);
+        renderChart(await getRecords());
+    }),
+);
 exportBtn.addEventListener("click", async () => exportCSV(await getRecords()));
-loginBtn.addEventListener("click", async () => { await loginWithGoogle(); });
-logoutBtn.addEventListener("click", async () => { await logout(); });
+loginBtn.addEventListener("click", async () => {
+    await loginWithGoogle();
+});
+logoutBtn.addEventListener("click", async () => {
+    await logout();
+});
 syncBtn.addEventListener("click", syncNow);
+langZhBtn.addEventListener("click", async () => {
+  currentLang = "zh";
+  setLang("zh");
+  applyLanguage();
+  await render();
+});
+
+langEnBtn.addEventListener("click", async () => {
+  currentLang = "en";
+  setLang("en");
+  applyLanguage();
+  await render();
+});
 
 async function initApp(): Promise<void> {
   dateInput.value = toISODate();
   updateLiveTotal();
+  applyLanguage();
   await updateStorageStatus();
   updateCloudStatus();
   watchAuth(async (user) => {
