@@ -244,4 +244,17 @@ watchAuth(async (user) => {
   if (user) await syncNow();
 });
 
-await render();
+async function initApp(): Promise<void> {
+  dateInput.value = toISODate();
+  updateLiveTotal();
+  await updateStorageStatus();
+  updateCloudStatus();
+  watchAuth(async (user) => {
+    currentUser = user;
+    updateCloudStatus();
+    if (user) await syncNow();
+  });
+  await render();
+}
+
+initApp();
