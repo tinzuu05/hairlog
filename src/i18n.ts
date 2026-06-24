@@ -4,8 +4,8 @@ export const LANG_STORAGE_KEY = "hairlog-lang";
 
 export const translations = {
   zh: {
-    appSubtitle: "Hair wellness journal",
-    title: "HairLog Nordic",
+    appSubtitle: "掉髮健康紀錄",
+    title: "HairLog",
     heroText: "記錄白天、洗髮與吹髮掉髮數，自動統計每日總量、平均值與趨勢。離線時存本機，登入後可同步雲端。",
     storageChecking: "正在確認資料儲存狀態…",
     cloudNotLoggedIn: "雲端狀態：尚未登入",
@@ -59,7 +59,14 @@ export const translations = {
     stable: "穩定",
     up: "上升",
     down: "下降",
-    unknown: "—"
+    unknown: "—",
+
+    unitHair: "根",
+    needSixRecords: "至少需要 6 筆資料",
+    legendTotal: "總數",
+    legendDaytime: "白天",
+    legendWashing: "洗髮",
+    legendDrying: "吹髮",
   },
 
   en: {
@@ -118,7 +125,14 @@ export const translations = {
     stable: "Stable",
     up: "Rising",
     down: "Falling",
-    unknown: "—"
+    unknown: "—",
+
+    unitHair: "hairs",
+    needSixRecords: "At least 6 records needed",
+    legendTotal: "Total",
+    legendDaytime: "Daytime",
+    legendWashing: "Washing",
+    legendDrying: "Blow-drying",
   }
 } as const;
 

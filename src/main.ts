@@ -155,7 +155,7 @@ function getCurrentTotal(): number {
     );
 }
 function updateLiveTotal(): void {
-    liveTotal.textContent = `${getCurrentTotal()} 根`;
+    liveTotal.textContent = `${getCurrentTotal()} ${t("unitHair")}`;
 }
 function escapeHTML(value: string): string {
     return value.replace(
@@ -239,21 +239,25 @@ function applyLanguage(): void {
   updateCloudStatus();
 }
 function updateCloudStatus(text?: string): void {
-    if (!isFirebaseConfigured) {
-        cloudStatus.textContent = "";
-        loginBtn.disabled = true;
-        syncBtn.disabled = true;
-        logoutBtn.disabled = true;
-        return;
-    }
-    cloudStatus.textContent =
-        text ??
-        (currentUser
-            ? `雲端狀態：已登入 ${currentUser.email ?? ""}`
-            : "雲端狀態：尚未登入");
-    loginBtn.disabled = Boolean(currentUser);
-    syncBtn.disabled = !currentUser;
-    logoutBtn.disabled = !currentUser;
+  if (!isFirebaseConfigured) {
+    cloudStatus.textContent = t("firebaseNotConfigured");
+    loginBtn.disabled = true;
+    syncBtn.disabled = true;
+    logoutBtn.disabled = true;
+    return;
+  }
+
+  if (text) {
+    cloudStatus.textContent = text;
+  } else if (currentUser) {
+    cloudStatus.textContent = `${t("cloudLoggedIn")} ${currentUser.email ?? ""}`;
+  } else {
+    cloudStatus.textContent = t("cloudNotLoggedIn");
+  }
+
+  loginBtn.disabled = Boolean(currentUser);
+  syncBtn.disabled = !currentUser;
+  logoutBtn.disabled = !currentUser;
 }
 function renderStats(records: HairRecord[]): void {
     const todayRecord = records.find((record) => record.date === toISODate());
@@ -308,25 +312,25 @@ function renderChart(records: HairRecord[]): void {
             labels: data.map((record) => formatShortDate(record.date)),
             datasets: [
                 {
-                    label: "總數",
+                    label: t("legendTotal"),
                     data: data.map((r) => r.total),
                     tension: 0.35,
                     borderWidth: 3,
                 },
                 {
-                    label: "白天",
+                    label: t("legendDaytime"),
                     data: data.map((r) => r.daytime),
                     tension: 0.35,
                     borderWidth: 2,
                 },
                 {
-                    label: "洗髮",
+                    label: t("legendWashing"),
                     data: data.map((r) => r.washing),
                     tension: 0.35,
                     borderWidth: 2,
                 },
                 {
-                    label: "吹髮",
+                    label: t("legendDrying"),
                     data: data.map((r) => r.drying),
                     tension: 0.35,
                     borderWidth: 2,

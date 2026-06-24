@@ -8,7 +8,7 @@ export function average(records: HairRecord[], days: number): number {
 }
 
 export function getTrend(records: HairRecord[]): Trend {
-  if (records.length < 6) return { label: "—", hint: "至少需要 6 筆資料" };
+  if (records.length < 6) return { label: "—", hint: "needSixRecords" };
 
   const recent = records.slice(-3);
   const previous = records.slice(-6, -3);
