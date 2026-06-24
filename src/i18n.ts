@@ -67,6 +67,12 @@ export const translations = {
     legendDaytime: "白天",
     legendWashing: "洗髮",
     legendDrying: "吹髮",
+    storageNotPersisted: "資料儲存狀態：尚未啟用持久儲存，資料仍會保存在本機。",
+    cloudSyncedCount: "雲端狀態：同步完成，共",
+    recordDaytime: "白天",
+    recordWashing: "洗髮",
+    recordDrying: "吹髮",
+    cloudLocalOnly: "雲端：尚未同步",
   },
 
   en: {
@@ -133,6 +139,13 @@ export const translations = {
     legendDaytime: "Daytime",
     legendWashing: "Washing",
     legendDrying: "Blow-drying",
+
+    storageNotPersisted: "Storage status: Persistent storage is not enabled yet. Data is still saved locally.",
+    cloudSyncedCount: "Cloud status: Sync complete,",
+    recordDaytime: "Daytime",
+    recordWashing: "Washing",
+    recordDrying: "Blow-drying",
+    cloudLocalOnly: "Cloud: Not synced",
   }
 } as const;
 

@@ -174,8 +174,8 @@ async function updateStorageStatus(): Promise<void> {
     await requestPersistentStorage();
     const status = await getStorageStatus();
     storageStatus.textContent = status.persisted
-        ? "資料儲存狀態：已啟用持久儲存，降低被瀏覽器自動清除的機率。"
-        : "";
+        ? t("storagePersisted")
+        : t("storageNotPersisted");
 }
 function applyLanguage(): void {
   document.documentElement.lang = currentLang === "zh" ? "zh-Hant" : "en";
@@ -273,25 +273,27 @@ function renderStats(records: HairRecord[]): void {
 function renderRecords(records: HairRecord[]): void {
     emptyState.style.display = records.length ? "none" : "block";
     recordsList.innerHTML = records
-        .slice()
-        .reverse()
-        .map(
-            (record) => `
-    <article class="record-item">
-      <div class="record-date">${record.date}</div>
-      <div class="record-breakdown">
-        白天 ${record.daytime}｜洗髮 ${record.washing}｜吹髮 ${record.drying}
-        ${record.note ? `<br />備註：${escapeHTML(record.note)}` : ""}
-        ${record.syncedAt ? `<br />雲端：已同步` : ""}
-      </div>
-      <div>
-        <div class="record-total">${record.total} 根</div>
-        <button class="danger-btn" type="button" data-delete="${record.id}">刪除</button>
-      </div>
-    </article>
-  `,
-        )
-        .join("");
+
+  .map(
+    (record) => `
+      <article class="record-card">
+        <div>
+          <h3>${record.date}</h3>
+          <p>
+            ${t("recordDaytime")} ${record.daytime}
+            ｜ ${t("recordWashing")} ${record.washing}
+            ｜ ${t("recordDrying")} ${record.drying}
+          </p>
+          <p>${record.syncedAt ? t("cloudSynced") : t("cloudLocalOnly")}</p>
+        </div>
+        <strong>${record.total} ${t("unitHair")}</strong>
+        <button class="delete-btn" data-id="${record.id}" type="button">
+          ${t("delete")}
+        </button>
+      </article>
+    `
+  )
+  .join("");
 
     document
         .querySelectorAll<HTMLButtonElement>("[data-delete]")
@@ -366,7 +368,7 @@ async function render(): Promise<void> {
 }
 async function syncNow(): Promise<void> {
     if (!currentUser) return;
-    updateCloudStatus("雲端狀態：同步中…");
+    updateCloudStatus(t("cloudSyncing"));
     const localRecords = await getRecords();
     await uploadRecordsToCloud(currentUser, localRecords);
     const cloudRecords = await fetchCloudRecords(currentUser);
@@ -375,7 +377,7 @@ async function syncNow(): Promise<void> {
         syncedAt: new Date().toISOString(),
     }));
     await upsertMany(syncedRecords);
-    updateCloudStatus(`雲端狀態：同步完成，共 ${syncedRecords.length} 筆`);
+    updateCloudStatus(t("cloudSyncedCount") + `${syncedRecords.length} ${t("recordsUnit")}`);
     await render();
 }
 
