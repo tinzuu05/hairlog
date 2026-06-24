@@ -18,7 +18,7 @@ export function exportCSV(records: HairRecord[]): void {
   const anchor = document.createElement("a");
 
   anchor.href = url;
-  anchor.download = `hairlog-nordic-${toISODate()}.csv`;
+  anchor.download = `hairlog-${toISODate()}.csv`;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();

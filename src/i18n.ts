@@ -77,7 +77,7 @@ export const translations = {
 
   en: {
     appSubtitle: "Hair wellness journal",
-    title: "HairLog Nordic",
+    title: "HairLog",
     heroText: "Track daytime, washing, and blow-drying hair loss. Automatically calculate totals, averages, and trends. Data is stored offline first and can sync to the cloud after sign-in.",
     storageChecking: "Checking storage status…",
     cloudNotLoggedIn: "Cloud status: Not signed in",

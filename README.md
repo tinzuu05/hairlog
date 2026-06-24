@@ -1,4 +1,4 @@
-# HairLog Nordic v1.2 Firebase
+# HairLog v1.2 Firebase
 
 北歐質感每日掉髮量追蹤 PWA。支援離線 IndexedDB、本機持久儲存、CSV 匯出、Firebase Google 登入與 Firestore 雲端同步。
 

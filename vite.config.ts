@@ -10,7 +10,7 @@ export default defineConfig({
       manifestFilename: "manifest.webmanifest",
       includeAssets: ["icons/icon-192.png", "icons/icon-512.png"],
       manifest: {
-        name: "HairLog Nordic",
+        name: "HairLog",
         short_name: "HairLog",
         description: "每日掉髮量追蹤、統計、趨勢圖、離線使用與雲端同步 PWA。",
         theme_color: "#8aa399",

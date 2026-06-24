@@ -13,7 +13,7 @@ interface HairLogDB extends DBSchema {
   };
 }
 
-const DB_NAME = "hairlog-nordic-v1-2";
+const DB_NAME = "hairlog-v1-2";
 const DB_VERSION = 1;
 
 const dbPromise = openDB<HairLogDB>(DB_NAME, DB_VERSION, {

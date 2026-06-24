@@ -35,7 +35,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <header class="hero">
       <div>
         <p class="eyebrow">Hair wellness journal</p>
-        <h1>HairLog Nordic</h1>
+        <h1>HairLog</h1>
         <p class="hero-text">記錄白天、洗髮與吹髮掉髮數，自動統計每日總量、平均值與趨勢。離線時存本機，登入後可同步雲端。</p>
         <div id="storageStatus" class="status-line">正在確認資料儲存狀態…</div>
         <div id="cloudStatus" class="status-line">雲端狀態：尚未登入</div>
