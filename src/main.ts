@@ -273,25 +273,23 @@ function renderStats(records: HairRecord[]): void {
 function renderRecords(records: HairRecord[]): void {
     emptyState.style.display = records.length ? "none" : "block";
     recordsList.innerHTML = records
-
+  .slice()
+  .reverse()
   .map(
     (record) => `
-      <article class="record-card">
-        <div>
-          <h3>${record.date}</h3>
-          <p>
-            ${t("recordDaytime")} ${record.daytime}
-            ｜ ${t("recordWashing")} ${record.washing}
-            ｜ ${t("recordDrying")} ${record.drying}
-          </p>
-          <p>${record.syncedAt ? t("cloudSynced") : t("cloudLocalOnly")}</p>
-        </div>
-        <strong>${record.total} ${t("unitHair")}</strong>
-        <button class="delete-btn" data-id="${record.id}" type="button">
-          ${t("delete")}
-        </button>
-      </article>
-    `
+    <article class="record-item">
+      <div class="record-date">${record.date}</div>
+      <div class="record-breakdown">
+        ${t("recordDaytime")} ${record.daytime}｜${t("recordWashing")} ${record.washing}｜${t("recordDrying")} ${record.drying}
+        ${record.note ? `<br />${t("noteLabel")}：${escapeHTML(record.note)}` : ""}
+        ${record.syncedAt ? `<br />${t("cloudSynced")}` : ""}
+      </div>
+      <div>
+        <div class="record-total">${record.total} ${t("unitHair")}</div>
+        <button class="danger-btn" type="button" data-delete="${record.id}">${t("delete")}</button>
+      </div>
+    </article>
+  `,
   )
   .join("");
 
