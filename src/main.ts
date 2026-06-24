@@ -233,17 +233,6 @@ loginBtn.addEventListener("click", async () => { await loginWithGoogle(); });
 logoutBtn.addEventListener("click", async () => { await logout(); });
 syncBtn.addEventListener("click", syncNow);
 
-dateInput.value = toISODate();
-updateLiveTotal();
-await updateStorageStatus();
-updateCloudStatus();
-
-watchAuth(async (user) => {
-  currentUser = user;
-  updateCloudStatus();
-  if (user) await syncNow();
-});
-
 async function initApp(): Promise<void> {
   dateInput.value = toISODate();
   updateLiveTotal();
